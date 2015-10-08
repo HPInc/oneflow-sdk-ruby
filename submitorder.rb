@@ -8,20 +8,20 @@ require './models/address'
 require 'json'
 
 #initialise the sdk
-endpoint = "http://stage.oneflowcloud.com/api"
-token = "1252524138534"
-secret = "8cea092e6047af8670d1650dc29896eb1e5b2d1f7e57f44d"
+endpoint = "ONEFLOW-ENDPOINT"
+token = "ONEFLOW-TOKEN"
+secret = "ONEFLOW-SECRET"
 
 #order settings
-destination = "order-test"
+destination = "DESTINATION-ACCOUNT"
 orderId = "order-"+rand(1000000).to_s
 itemId = orderId + "-1"
-fetchUrl = "http://www.analysis.im/uploads/seminar/pdf-sample.pdf"
+fetchUrl = "FETCHURL"
 quantity = 1
-skuCode = "test-sku"
-componentCode = "text"
-carrierCode = "royalmail"
-carrierService = "firstclass"
+skuCode = "SKU-CODE"
+componentCode = "COMPONENT-CODE"
+carrierCode = "CARRIER-CODE"
+carrierService = "CARRIER-SERVICE"
 name = "Nigel Watson"
 address1 = "999 Letsbe Avenue"
 town = "London"
