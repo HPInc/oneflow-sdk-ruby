@@ -1,7 +1,7 @@
 require './models/order'
 
 require 'httparty'
-require 'digest/hmac'
+require 'openssl'
 
 class OneflowClient
     attr_accessor :endpoint, :token, :secret, :order
@@ -93,9 +93,8 @@ class OneflowClient
 
     def make_token(method, path, timestamp)
         value = method + " " + path + " " + timestamp.to_s
-        hmac = Digest::HMAC.new(@secret, Digest::SHA1)
-        hmac.update(value)
-        signature = hmac.hexdigest
+        digest  = OpenSSL::Digest.new('sha1')
+        signature = OpenSSL::HMAC.hexdigest(digest, @secret, value)
         local_authorization = @token + ":" + signature
     end
 
