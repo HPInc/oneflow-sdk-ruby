@@ -1,7 +1,15 @@
 require './models/order'
 
 require 'httparty'
-require 'digest/hmac'
+
+ver_2_2 = Gem::Version.new('2.2')
+ver_current = Gem::Version.new(RUBY_VERSION)
+
+if (ver_2_2 > ver_current)
+    require 'digest/hmac' # Ruby version <= 2.1.10
+else
+    require 'openssl' # Ruby version 2.2 =>
+end
 
 class OneflowClient
     attr_accessor :endpoint, :token, :secret, :order
@@ -93,9 +101,20 @@ class OneflowClient
 
     def make_token(method, path, timestamp)
         value = method + " " + path + " " + timestamp.to_s
-        hmac = Digest::HMAC.new(@secret, Digest::SHA1)
-        hmac.update(value)
-        signature = hmac.hexdigest
+
+        ver_2_2 = Gem::Version.new('2.2')
+        ver_current = Gem::Version.new(RUBY_VERSION)
+
+        if (ver_2_2 > ver_current)
+            # Ruby Version <= 2.1.10
+            hmac = Digest::HMAC.new(@secret, Digest::SHA1)
+            hmac.update(value)
+            signature = hmac.hexdigest
+        else
+            # Ruby Version v2.2 =>
+            signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), @secret, value)
+        end
+
         local_authorization = @token + ":" + signature
     end
 

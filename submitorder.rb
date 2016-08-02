@@ -8,7 +8,7 @@ require './models/address'
 require 'json'
 
 #initialise the sdk
-endpoint = "ONEFLOW-ENDPOINT"
+endpoint = "ONEFLOW-ENDPOINT" # Don't forget the /api at the end of the endpoint
 token = "ONEFLOW-TOKEN"
 secret = "ONEFLOW-SECRET"
 
@@ -65,7 +65,7 @@ if (response_json["error"])
     puts "Error"
     puts "====="
     puts response_json["error"]["message"]
-    if (response_json["error"]["code"])
+    if (response_json["error"]["validations"])
         response_json["error"]["validations"].each {|val| puts val["path"] + " -> " + val["message"]}
     end
 else
