@@ -41,7 +41,7 @@ class OneflowClient
         end
     end
 
-    def get_request(url, data, timestamp, auth_header)
+    def get_request(url, timestamp, auth_header)
         response = HTTParty.get(url, :headers => {
             'x-oneflow-date' => timestamp.to_s,
             'x-oneflow-authorization' => auth_header
@@ -100,7 +100,7 @@ class OneflowClient
     end
 
     def make_token(method, path, timestamp)
-        value = method + " " + path + " " + timestamp.to_s
+        value = method.upcase + " " + path + " " + timestamp.to_s
 
         ver_2_2 = Gem::Version.new('2.2')
         ver_current = Gem::Version.new(RUBY_VERSION)
