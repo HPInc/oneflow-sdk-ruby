@@ -4,10 +4,9 @@
 
 ```ruby
 
-import os
-from OneflowSDK import OneflowSDK
+require './oneflowclient'
 
-#OneflowSDK instance
+#OneflowClient instance
 client = OneflowClient.new(endpoint, token, secret)
 
 # ... Fill in request path and data
