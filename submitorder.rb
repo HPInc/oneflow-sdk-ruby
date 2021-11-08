@@ -28,10 +28,27 @@ town = "London"
 postcode = "EC2N 0BJ"
 isoCountry = "GB"
 
-# No need to edit below here
+# Retry options
+class Options
+    attr_accessor :retries
 
-#create the onelflow client
+    def initialize()
+        @retries = 3
+    end
+
+    def retryCondition(response)
+        return response.code != 200 # retry everything but OK
+    end
+
+    def retryDelay(response, retryCount)
+        sleep 1 # just delay 1 sec
+    end
+end
+
+#create the onelflow client. Pass Options.new as 4th argument and customize logic or skip for defaults (exponential retry in case of 429)
 client = OneflowClient.new(endpoint, token, secret)
+
+# No need to edit below here
 
 order = client.create_order(destination)
 order.orderData.sourceOrderId = orderId
@@ -61,11 +78,11 @@ order.orderData.shipments.push(shipment)
 response = client.submit_order
 response_json = JSON.parse(response.body)
 
-if (response_json["error"])
+if (response.code != 200)
     puts "Error"
     puts "====="
-    puts response_json["error"]["message"]
-    if (response_json["error"]["validations"])
+    puts response_json["error"] ? response_json["error"]["message"] : response_json["message"]
+    if (response_json["error"] && response_json["error"]["validations"])
         response_json["error"]["validations"].each {|val| puts val["path"] + " -> " + val["message"]}
     end
 else

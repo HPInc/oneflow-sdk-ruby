@@ -12,10 +12,17 @@ else
 end
 
 class OneflowClient
-    attr_accessor :endpoint, :token, :secret, :order
+    attr_accessor :endpoint, :token, :secret, :order, :retries, :retryCondition, :retryDelay
 
-    def initialize(endpoint, token, secret)
+    def initialize(endpoint, token, secret, options = nil)
         @endpoint, @token, @secret = endpoint, token, secret
+        set_options(options)
+    end
+
+    def set_options(options)
+        @retries = (options && options.retries) ? options.retries : 3
+        @retryCondition = (options && options.respond_to?("retryCondition")) ? options.method("retryCondition") : method(:isRetryableError)
+        @retryDelay = (options && options.respond_to?("retryDelay")) ? options.method("retryDelay") : method(:exponentialDelay)
     end
 
     def create_order(destination)
@@ -29,16 +36,23 @@ class OneflowClient
         timestamp = Time.now.getutc
         auth_header = make_token(method, parse_url.path, timestamp)
 
-        case method.downcase
-        when "post"
-            return post_request(post_url, data, timestamp, auth_header)
-        when "put"
-            return put_request(post_url, data, timestamp, auth_header)
-        when "get"
-            return get_request(post_url, timestamp, auth_header)
-        when "delete"
-            return delete_request(post_url, timestamp, auth_header)
+        for attemp in 1..@retries
+            case method.downcase
+            when "post"
+                response =  post_request(post_url, data, timestamp, auth_header)
+            when "put"
+                response =  put_request(post_url, data, timestamp, auth_header)
+            when "get"
+                response =  get_request(post_url, timestamp, auth_header)
+            when "delete"
+                response =  delete_request(post_url, timestamp, auth_header)
+            end
+
+            if !@retryCondition.call(response) then break end
+            @retryDelay.call(response, attemp)
         end
+
+        return response
     end
 
     def get_request(url, timestamp, auth_header)
@@ -143,4 +157,16 @@ class OneflowClient
     def upload_file(file_record, local_filename)
         upload_request(file_record["url"], local_filename)
     end
+
+    def isRetryableError(response)
+        return response.code == 429
+    end
+
+    def exponentialDelay(response, retryCount)
+        coefficient = (response.code == 429) ? (0.3 * 60) : 0.1 # assume 429 limit by minute
+        delay = 2.pow(retryCount) * coefficient
+        randomSum = delay * 0.04 * rand(11) # 0-40% of the delay
+        sleep (delay + randomSum)
+    end
+      
 end
