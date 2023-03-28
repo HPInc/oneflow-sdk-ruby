@@ -58,7 +58,8 @@ class OneflowClient
     def get_request(url, timestamp, auth_header)
         response = HTTParty.get(url, :headers => {
             'x-oneflow-date' => timestamp.to_s,
-            'x-oneflow-authorization' => auth_header
+            'x-oneflow-authorization' => auth_header,
+            'x-oneflow-algorithm' => 'SHA256'
         })
     end
 
@@ -66,7 +67,8 @@ class OneflowClient
         response = HTTParty.post(url, :body => data, :headers => {
             'Content-Type' => 'application/json',
             'x-oneflow-date' => timestamp.to_s,
-            'x-oneflow-authorization' => auth_header
+            'x-oneflow-authorization' => auth_header,
+            'x-oneflow-algorithm' => 'SHA256'
         })
     end
 
@@ -74,14 +76,16 @@ class OneflowClient
         response = HTTParty.put(url, :body => data, :headers => {
             'Content-Type' => 'application/json',
             'x-oneflow-date' => timestamp.to_s,
-            'x-oneflow-authorization' => auth_header
+            'x-oneflow-authorization' => auth_header,
+            'x-oneflow-algorithm' => 'SHA256'
         })
     end
 
     def delete_request(url, data, timestamp, auth_header)
         response = HTTParty.delete(url, :headers => {
             'x-oneflow-date' => timestamp.to_s,
-            'x-oneflow-authorization' => auth_header
+            'x-oneflow-authorization' => auth_header,
+            'x-oneflow-algorithm' => 'SHA256'
         })
     end
 
@@ -121,12 +125,12 @@ class OneflowClient
 
         if (ver_2_2 > ver_current)
             # Ruby Version <= 2.1.10
-            hmac = Digest::HMAC.new(@secret, Digest::SHA1)
+            hmac = Digest::HMAC.new(@secret, Digest::SHA256)
             hmac.update(value)
             signature = hmac.hexdigest
         else
             # Ruby Version v2.2 =>
-            signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), @secret, value)
+            signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), @secret, value)
         end
 
         local_authorization = @token + ":" + signature
