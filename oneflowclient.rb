@@ -118,18 +118,19 @@ class OneflowClient
     end
 
     def make_token(method, path, timestamp)
-        value = method.upcase + " " + path + " " + timestamp.to_s
 
         ver_2_2 = Gem::Version.new('2.2')
         ver_current = Gem::Version.new(RUBY_VERSION)
 
         if (ver_2_2 > ver_current)
             # Ruby Version <= 2.1.10
+            value = method.upcase + " " + URI.decode(path) + " " + timestamp.to_s
             hmac = Digest::HMAC.new(@secret, Digest::SHA256)
             hmac.update(value)
             signature = hmac.hexdigest
         else
-            # Ruby Version v2.2 =>
+            # Ruby Version > v2.5 =>
+            value = method.upcase + " " + CGI::unescape(path) + " " + timestamp.to_s
             signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), @secret, value)
         end
 
